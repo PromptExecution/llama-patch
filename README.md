@@ -17,7 +17,6 @@ Llama Patching streamlines the process of CRUD (create, read, update, delete) so
 | Bash     | Future      |
 | Other    | TBD | please create issue + send PR to README file with link to issue |
 
-🙏🏻 Dear community - I personally use LLM agents to author code in Rust, Python, Typescript/Javascript, Bash, Terraform/HCL, YAML/K8s CRDs and a few others and welcome contributors and maintainers of others.  My goal is for llama-patch (like gnu diff/patch) to be language agnostic.  The LLM context footprint of llama-patch instructions will be more laconic without a unique syntacial dialect for each language.   It would be better to version llama-patch generationally (ex: a "next" version for each language that converges with releases of llama-patch on major version numbers.  For this reason contributions from champions of other languages are planned/welcome and a versioning system for enhanced language specific functionality will be introduced later.  Llama-parse as an agentic tool will eventually include a variety of guard-rails to catch + output prompt friendly remediation instructions for a wide variety of LLM errors.  If you've got an idea please open an issue! 
 
 ## Summary
 
@@ -63,3 +62,11 @@ docker run llama-patch
 * Item Specification: Define the type (fn, struct, class, etc.) and name of the item to be modified.
 * New Code Integration: Provide the new implementation or an empty string for removal.
 * Git Patch Output: Generate patches in git patch format for easy application and rollback.
+
+## 🙏🏻 Contributors Welcome!
+If you've got an idea please open an issue! Language Champions needed. I can't possibly maintain all the languages (my stack is rust, python, typescript, terraform/HCL and bash so I will try and do those)
+My goal is for llama-patch (like gnu diff/patch) to be language agnostic (despite its dependency on AST code parsing).  
+The LLM context footprint of llama-patch instructions can be laconic without a unique syntacial dialect for each language.  
+It would be better to version llama-patch generationally (ex: a "next" version for each language that proposes changes & periodically converges with releases of llama-patch on major version numbers)
+Llama-parse as an agentic tool will eventually include a variety of guard-rails to catch + output prompt friendly remediation instructions for a wide variety of LLM errors.  
+
