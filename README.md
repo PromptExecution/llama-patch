@@ -6,7 +6,7 @@ A polyglot cli-tool + prompts for Extract-Transform LLM generated code into vali
 
 <img width=150 align=right src="llama-parse-logo.webp" alt="LLMs 💖 GNU Patch"/>
 
-Llama Patching streamlines the process of CRUD (create, read, update, delete) source text files with LLM-generated changes by extracting line number positions & creating valid gnu unified diff files suitable for `git patch apply` the intention is to support as many languages as possible in a single container despite the need for separate native syntax/AST libraries and capabilities. 
+Llama Patching streamlines the process of CRUD (create, read, update, delete) source text files with LLM-generated changes by extracting line number positions & creating valid gnu unified diff files suitable for `git patch apply` the intention is to support as many languages as possible in a single container despite the need for separate native syntax/AST libraries and capabilities.   This will be possible because most modern language should be able provide interfaces to their libraries via WASM (Web Assembler) and then called from any other languuage.
 
 | Language | Support  | Notes |
 |----------|----------| ----- |
@@ -17,7 +17,7 @@ Llama Patching streamlines the process of CRUD (create, read, update, delete) so
 | Bash     | Future      |
 | Other    | TBD | please create issue + send PR to README file with link to issue |
 
-Dear community - let's avoid javascript tooling hell. I personally code in Rust, Python, Typescript/Javascript and Bash and my LLM should NOT experience the tedium of learning and confusing a bespoke patch syntacial dialect for each language - for this reason contributions of other languages are planned/welcome and a versioning system (for enhanced language specific functionality will be introduced later).   If you've got an idea please open an issue! 
+🙏🏻 Dear community - I personally use LLM agents to author code in Rust, Python, Typescript/Javascript, Bash, Terraform/HCL, YAML/K8s CRDs and a few others and welcome contributors and maintainers of others.  My goal is for llama-patch (like gnu diff/patch) to be language agnostic.  The LLM context footprint of llama-patch instructions will be more laconic without a unique syntacial dialect for each language.   It would be better to version llama-patch generationally (ex: a "next" version for each language that converges with releases of llama-patch on major version numbers.  For this reason contributions from champions of other languages are planned/welcome and a versioning system for enhanced language specific functionality will be introduced later.  Llama-parse as an agentic tool will eventually include a variety of guard-rails to catch + output prompt friendly remediation instructions for a wide variety of LLM errors.  If you've got an idea please open an issue! 
 
 ## Summary
 
