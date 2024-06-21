@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use std::fs;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use syn::{File, Item, ItemFn, ItemStruct, parse_file};
 use quote::ToTokens;
 use proc_macro2::TokenStream;
@@ -90,6 +90,66 @@ fn generate_diff(original_file: &str, modified_file: &str) {
         println!("No changes detected.");
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_replace_function() {
+        let original_code = "fn my_function(a: i32) -> i32 { a + 1 }";
+        let new_code = "fn my_function(a: i32) -> i32 { a * 2 }";
+        let mut syntax_tree: File = parse_file(original_code).expect("Failed to parse the file");
+        let new_item: Option<Item> = Some(Item::Fn(syn::parse_str(new_code).expect("Failed to parse the new function code")));
+        modify_items(&mut syntax_tree.items, "my_function", new_item);
+        let expected_code = format_code(new_code);
+        let actual_code = format_code(&syntax_tree.into_token_stream().to_string());
+        assert_eq!(actual_code, expected_code);
+    }
+
+    #[test]
+    fn test_remove_struct() {
+        let original_code = "struct MyStruct { x: i32, y: i32 }";
+        let mut syntax_tree: File = parse_file(original_code).expect("Failed to parse the file");
+        modify_items(&mut syntax_tree.items, "MyStruct", None);
+        assert!(syntax_tree.items.is_empty());
+    }
+
+    #[test]
+    fn test_add_new_function() {
+        let original_code = "fn my_function(a: i32) -> i32 { a + 1 }";
+        let new_code = "fn new_function(b: i32) -> i32 { b * b }";
+        let mut syntax_tree: File = parse_file(original_code).expect("Failed to parse the file");
+        let new_item: Option<Item> = Some(Item::Fn(syn::parse_str(new_code).expect("Failed to parse the new function code")));
+        modify_items(&mut syntax_tree.items, "new_function", new_item);
+        let expected_code = format_code(&format!("{} {}", original_code, new_code));
+        let actual_code = format_code(&syntax_tree.into_token_stream().to_string());
+        assert_eq!(actual_code, expected_code);
+    }
+}
+
+
+fn format_code(code: &str) -> String {
+    use std::io::Write;
+    let mut child = Command::new("rustfmt")
+        .arg("--emit")
+        .arg("stdout")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn rustfmt process");
+
+    {
+        let stdin = child.stdin.as_mut().expect("Failed to open stdin");
+        stdin.write_all(code.as_bytes()).expect("Failed to write to stdin");
+    }
+
+    let output = child.wait_with_output().expect("Failed to read stdout");
+
+    String::from_utf8(output.stdout).expect("Failed to convert output to string")
+}
+
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

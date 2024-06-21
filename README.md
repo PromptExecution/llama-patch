@@ -7,7 +7,7 @@
 
 <img width=150 align=right src="llama-parse-logo.webp" alt="LLMs 💖 GNU Patch"/>
 
-Llama Patching streamlines the process of CRUD (create, read, update, delete) source text files with LLM-generated using an intermediate representation that can be translated into a valid [gnu unified diff](https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html) format suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)).
+The Llama Patching approach improves the creation, update, & delete of program code syntax inside text files via LLM codegen. Using a intermediate representation that can be translated into a valid [gnu unified diff](https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html) format suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)). This has the added benefit of git history annotation of prompts and parameters for llm maintained repositories.
 
 ### Support
 | Language | Support  | Notes |
