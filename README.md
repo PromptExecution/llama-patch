@@ -2,39 +2,48 @@
 
 # llama-patch  WIP
 
-A polyglot cli-tool + prompts for Extract-Transform LLM generated code into valid git patch hunks (with line numbers) by parsing the language specific AST (abstract syntax tree) code structure.
+A polyglot containerized cli-tool + prompt training for Extract-Transform LLM generated code into valid git patch hunks (with line numbers) by parsing the language specific AST (abstract syntax tree) code structure rather than letting an LLM re-create & output an entire copy of an entire file (which is both impractical and dangerous in most large codebases which frequently have limited/incomplete test coverage).
+
 
 <img width=150 align=right src="llama-parse-logo.webp" alt="LLMs 💖 GNU Patch"/>
 
-Llama Patching streamlines the process of CRUD (create, read, update, delete) source text files with LLM-generated changes by extracting line number positions & creating valid gnu unified diff files suitable for `git patch apply` the intention is to support as many languages as possible in a single container despite the need for separate native syntax/AST libraries and capabilities.   This will facilitated by the fact most modern language should be able provide interfaces to their libraries via WASM (Web Assembler) and then called from any other language.
+Llama Patching streamlines the process of CRUD (create, read, update, delete) source text files with LLM-generated changes by extracting line number positions & creating valid gnu unified diff files suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)) the intention is to support as many languages as possible in a single container despite the need for translating into separate native syntax/AST libraries and capabilities. The assumption is that most modern language should be able provide interfaces to their libraries via WASM (Web Assembler) and then called from any other language, and that LLM's will be used to do the heavy lifting of maintain logic synchronicity between language implementations.
 
 | Language | Support  | Notes |
 |----------|----------| ----- |
-| Python   | Yes      | uses redbaron to parse AST |
-| Rust     | Planned v1     | |
+| Python   | YES      | uses redbaron to parse AST |
+| Rust     | YES     | uses syn crate to parse AST |
 | JavaScript | Future    | |
 | TypeScript | Future    |
 | Bash     | Future      |
 | Other    | TBD | please create issue + send PR to README file with link to issue |
 
 
-## Summary
+## Quickstart
+To get started simply add the [example instruction prompt](examples/) to your codegen LLM.
+See [Howto](#howto) section.
 
-Llama Patching is a prompt+code (container cli) tool for LLM REPL automated code generation using git. This tool addresses the inherent limitations of large language models (LLMs), such as transformers, which struggle to count or keep track of line numbers in source code—a prerequisite for generating git unified diff GNU patches. Instead of wasting tokens, time, and money trying to zero-shot entire files, Llama Patching provides a scalable and efficient solution for managing code changes.
 
-LLMs are powerful tools for generating code, but broadly their transformer based architecture has insurmountable limitations when it comes to tracking line numbers and generating accurate patches. This leads to several issues:
+## Summary Abstract
+
+Since most people who will visit this page are data-scientists who mopstly aren't git wizards but are accustomed to scanning a paper abstract let's explain llama-patch this way:
+
+Llama Patching is a prompt+code (container cli) tool for LLM [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)  automated code generation using git. This tool addresses the inherent limitations of large language models (LLMs), such as transformers, which struggle to count or keep track of line numbers in source code—a prerequisite for generating git unified diff GNU patches. Instead of wasting tokens, time, and money trying to zero-shot entire files, Llama Patching provides a scalable and efficient solution for translating LLM outpuut into the gold-standard "unix patch" format used for decades to perform code changes.  Llama-patch also has the beneficial side effect of creating meaningful git history for agent/human proxy collaboration on a repository.
+
+LLMs are powerful tools for generating code, but broadly their modern transformer based architecture has (*present day*) insurmountable limitations when it comes to tracking line numbers and generating accurate patches.  Every other approach (besides llama-patch) can be ranked & fit to these issues:
 
 * Inefficiency: Repetitively zero-shotting entire files and is error prone + not scalable for even moderately complex projects.
 * Wasteful: LLMs waste valuable tokens attempting to manage context and line numbers, which can be better utilized for generating precise code changes.
-* Context Pollution: Methods that instruct the base LLM to count and track line numbers (such as using bat) pollute the context and degrade the accuracy of the generated code.
+* Context Pollution: Methods that instruct the base LLM to count and track line numbers (such as using bat) pollute the context and degrade the accuracy of the generated code and generally won't work.
+* Bad Alternative Practices: executing non-contextual search and replace mechanisms such as 'sed' or 'regex' based is like performing surgery with a machete rather than a scalpel and will inadvertantly introduce a variety of issues and may create cybersecurity consequences.
 
-This is a tool for [agentic codegen](https://github.com/SamurAIGPT/Best-AI-Agents) like AutoCoder, BabyAGI, or to implement code generation pipelines (ex: autogen, crew.ai).  Since your pipeline is probably unique you will need to consider how to best perform the setup & usage instructions outlined below.
+Llama-patch proffers a better tooling approach for your [agentic codegen](https://github.com/SamurAIGPT/Best-AI-Agents) like AutoCoder, BabyAGI, or pipeline such as [autogen](https://microsoft.github.io/autogen/) or [crew.ai](https://github.com/joaomdmoura/crewAI).  Since your pipeline is probably unique you will need to consider how to best perform the setup & usage instructions outlined below.
 
 Agentic systems work best building software incrementally with specific task objectives rather than taking a ridiculously complex multi-objective prompt and outputting the entire finished project with zero errors in a single shot.
 
 Using systems like AutoGen, Crew.Ai it is straightforward to orchestrate teams (or crews) of agents who collaboratively implement projects through iterative development, however the maximum complexity these systems can currently attain is significantly constrained to small mostly academic exercises which demo well but don't translate into a legion of LLM agents being able to maintain (or refactor) a large sprawling legacy codebase.   While RAG's and FineTuning can improve the accuracy, each time the source code is changed incrementally those systems need to be updated, which is fine for RAG but impractical for FineTuning, however the RAG strategy for updating chunks of vectors can introduce other complications.   Generally it is best to have the LLM looking at the most recent copy of the relevant source code file(s) and ONLY outputting the changes to those files for review - unfortunately (for historical reasons) generating valid patch hunks is nearly impossible due to its dependency on counting (a task which transformers are notoriously ill equipped). llama-patch addresses these shorcomings by introducing instructions (prompt samples) + container executable tool as an intermediate step in the agentic pipeline that transmogrifies LLM outpuut into a valid gnu unified diff (patch) format which is suitable for `git apply` and creating a observable + auditable change history in the repo for agentic contributions.   It is assuumed this tool will (soon, future) be integrated into a more complete set of github actions to fire on a tagged issue and the era and job market for well paid human programmers will collapse shortly thereafter.
 
-## HowTo Setup & Usage
+## Usage
 - Integrate llama-patch prompts instructing the model how to output "Llama Patch" (this will probably increase output efficiency and performance)
 
 - THEN Continue to cut and paste code from chat into a file (ex `> llm-output.txt`), OR take off the training wheels and use a shell integrated tool such as [OpenInterpreter/open-interpreter] to directly pipe auto-extract+load LLM output into llama-patch
