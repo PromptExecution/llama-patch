@@ -2,26 +2,29 @@
 
 # llama-patch  WIP
 
-A polyglot containerized cli-tool + prompt training for Extract-Transform LLM generated code into valid git patch hunks (with line numbers) by parsing the language specific AST (abstract syntax tree) code structure rather than letting an LLM re-create & output an entire copy of an entire file (which is both impractical and dangerous in most large codebases which frequently have limited/incomplete test coverage).
+👋🏻 A [polyglot](https://www.merriam-webster.com/dictionary/polyglot) [containerized](https://en.wikipedia.org/wiki/Containerization) [cli-tool](https://en.wikipedia.org/wiki/Command-line_interface) + prompt instructions for Extract-Transform LLM generated code into valid git patch hunks (with line numbers) by parsing the language specific [AST (abstract syntax tree)](https://en.wikipedia.org/wiki/Abstract_syntax_tree) rather than letting an LLM re-create & output an entire copy of an entire file _(which is both impractical and dangerous in most large codebases, especially those that have limited/incomplete test coverage)_
 
 
 <img width=150 align=right src="llama-parse-logo.webp" alt="LLMs 💖 GNU Patch"/>
 
-Llama Patching streamlines the process of CRUD (create, read, update, delete) source text files with LLM-generated changes by extracting line number positions & creating valid gnu unified diff files suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)) the intention is to support as many languages as possible in a single container despite the need for translating into separate native syntax/AST libraries and capabilities. The assumption is that most modern language should be able provide interfaces to their libraries via WASM (Web Assembler) and then called from any other language, and that LLM's will be used to do the heavy lifting of maintain logic synchronicity between language implementations.
+Llama Patching streamlines the process of CRUD (create, read, update, delete) source text files with LLM-generated using an intermediate representation that can be translated into a valid [gnu unified diff](https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html) format suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)).
 
+### Support
 | Language | Support  | Notes |
 |----------|----------| ----- |
 | Python   | YES      | uses redbaron to parse AST |
 | Rust     | YES     | uses syn crate to parse AST |
-| JavaScript | Future    | |
-| TypeScript | Future    |
+| JavaScript | Next    | |
+| TypeScript | Next    | in progress |
 | Bash     | Future      |
-| Other    | TBD | please create issue + send PR to README file with link to issue |
+| Go | Future |
+| Java | Future |
+| 💖 Other    | TBD | please create issue + send PR to README file with link to issue |
 
 
 ## Quickstart
-To get started simply add the [example instruction prompt](examples/) to your codegen LLM.
-See [Howto](#howto) section.
+To get started simply add the [example instruction prompt](examples/) to your favorite codegen LLM, then pipe it's output into llama-patch using the cli or a subprocess to get out a patch file.
+See [Howto](#howto) section for a sample step by step.
 
 
 ## Summary Abstract
@@ -80,4 +83,11 @@ My goal is for llama-patch (like gnu diff/patch) to be language agnostic (despit
 The LLM context footprint of llama-patch instructions can be laconic without a unique syntacial dialect for each language.
 It would be better to version llama-patch generationally (ex: a "next" version for each language that proposes changes & periodically converges with releases of llama-patch on major version numbers)
 Llama-parse as an agentic tool will eventually include a variety of guard-rails to catch + output prompt friendly remediation instructions for a wide variety of LLM errors.
+
+# Goals and Non-Goals
+The goal of llama-patch is to offer laconic performant prompts for all popular models,  while supporting as many languages as possible in a single container despite the need for translating the logic into separate native syntax/AST libraries and capabilities.  The assumption is that converge becauuse most modern languages should be able provide interfaces to their libraries via WASM (Web Assembler) and then called from any other language, and that LLM's will be used to do the heavy lifting of maintain logic synchronicity between language implementations.
+
+This tool does not seek to replace GNU patch, rather to work collaboratively as shown in the logo.
+
+Using semantic versioning, major versions will introduce breaking changes, minor versions will introduce new functionality per language.
 
