@@ -2,19 +2,24 @@
 
 # llama-patch  WIP
 
-👋🏻 A [polyglot](https://www.merriam-webster.com/dictionary/polyglot) [containerized](https://en.wikipedia.org/wiki/Containerization) [cli-tool](https://en.wikipedia.org/wiki/Command-line_interface) + prompt instructions for Extract-Transform LLM generated code into valid git patch hunks (with line numbers) by parsing the language specific [AST (abstract syntax tree)](https://en.wikipedia.org/wiki/Abstract_syntax_tree) rather than letting an LLM re-create & output an entire copy of an entire file _(which is both impractical and dangerous in most large codebases, especially those that have limited/incomplete test coverage)_
+👋🏻 A [polyglot](https://www.merriam-webster.com/dictionary/polyglot) [containerized](https://en.wikipedia.org/wiki/Containerization) [cli-tool](https://en.wikipedia.org/wiki/Command-line_interface) + prompt instructions _[see example](prompts/example.md)_ for transformer generated code into valid git patch hunks (with line numbers) by parsing the language specific [AST (abstract syntax tree)](https://en.wikipedia.org/wiki/Abstract_syntax_tree) in-lieu of an LLM re-creating & output an entire copy of an entire file _(which is both impractical and dangerous in most large codebases, especially those that have limited/incomplete test coverage)_
 
+llama-patch addresses the inherent limitations of transformers/large language models (LLMs) acknowledging they are unable to reliably count or keep track of line numbers in source code.  Currently all popular codegen models will re-output an entire file since they have no way to update a portion of a file, this wastes time and tokens! _The current approach does not scale well to large codebases and is ill suited for code reviews._
 
 <img width=150 align=right src="llama-parse-logo.webp" alt="LLMs 💖 GNU Patch"/>
 
-The Llama Patching approach improves the creation, update, & delete of program code syntax inside text files via LLM codegen. Using a intermediate representation with AST selector that can be translated into a valid [gnu unified diff](https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html) format suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)).
-Llama patch can also merge+annotate the commit with prompts and parameters using the repository git history as a source of truth and potentially increasing comprehension of LLMs agents to avoid mistakes of tearing down [Chestertons Fence](https://thoughtbot.com/blog/chestertons-fence).
+the [Llama-patch prompt](prompts/example.md) instructs the model a intermediate representation with relative AST selector that can then be transformed by a language-aware containerized application into a valid [gnu unified diff](https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html) output suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)).
+
+the Llama patch container can also merge+annotate the commit with prompts and parameters using the repository git history as a source of truth and potentially increasing comprehension of LLMs agents to avoid mistakes of tearing down [Chestertons Fence](https://thoughtbot.com/blog/chestertons-fence).
+
+Github or [Jira/Bitbucket (with smart commits)](https://support.atlassian.com/bitbucket-cloud/docs/use-smart-commits/) enables agents to [use branches](https://docs.github.com/en/issues/tracking-your-work-with-issues/creating-a-branch-for-an-issue), [create pull requests](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue), and [participate in code reviews](https://github.com/mawrkus/pull-request-review-guide) while leveraging the existing proven industry standard mechanics of [git merge](https://www.freecodecamp.org/news/the-definitive-guide-to-git-merge/).
+
 
 ### Language Support
 | Language | Support  | Notes |
 |----------|----------| ----- |
-| Python   | YES      | uses redbaron to parse AST |
-| Rust     | YES     | uses syn crate to parse AST |
+| Python   | YES      | uses [redbaron](https://redbaron.readthedocs.io/en/latest/) for AST |
+| Rust     | YES     | uses [syn crate](https://crates.io/crates/syn) to parse AST |
 | JavaScript | Next    | investigating babel |
 | TypeScript | Next    | in progress |
 | Bash     | Future      |
@@ -25,7 +30,7 @@ Llama patch can also merge+annotate the commit with prompts and parameters using
 | Terraform/HCL |||
 | 💖 Other    | TBD | please create issue + send PR to README file with link to issue |
 
-## Model Support
+### Model Support
 | Model | YN | Notes |
 | ChatGPT 4o | Y | use [examples/example.md], don't say "rewrite" instead say "llama patch" or simply "patch" in prompts |
 
@@ -36,9 +41,15 @@ See [Howto](#howto) section for a sample step by step.
 
 ## Summary Abstract
 
-Since most people who will visit this page are data-scientists who mopstly aren't git wizards but are accustomed to scanning a paper abstract let's explain llama-patch this way:
+Since most people who will visit this page are data-scientists who frequently aren't git experts but are inclined to scan a paper abstract let's explain llama-patch this way:
 
-Llama Patching is a prompt+code (container cli) tool for LLM [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)  automated code generation using git. This tool addresses the inherent limitations of large language models (LLMs), such as transformers, which struggle to count or keep track of line numbers in source code—a prerequisite for generating git unified diff GNU patches. Instead of wasting tokens, time, and money trying to zero-shot entire files, Llama Patching provides a scalable and efficient solution for translating LLM outpuut into the gold-standard "unix patch" format used for decades to perform code changes.  Llama-patch also has the beneficial side effect of creating meaningful git history for agent/human proxy collaboration on a repository.
+Llama Patching is a prompt+code (container cli) tool for LLM [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) automated code generation.
+
+[Git](https://www.atlassian.com/git/tutorials/what-is-git) is the most popular source code version control system developed by Linus Torvalds in 2005.  Git can accept changes as either diff or patch, a diff tracks raw changes in one or more files, whereas a patch contains a diff and is annotated with information about authorship and provinence to make synchronization easier.  The most common format of diff is a GNU unified diff, but there are many which ALL rely heavily on counting line numbers as a selector [detail](https://unix.stackexchange.com/questions/81998/understanding-of-diff-output).
+
+*The problem llama-patch solves is transformers are generally poor at counting and so they cannot generate reliable diffs and instead end up attempting to zero shot output an entire new version of the program*
+
+ —a prerequisite for generating git unified diff GNU patches. Instead of wasting tokens, time, and money trying to zero-shot entire files, Llama Patching provides a scalable and efficient solution for translating LLM outpuut into the gold-standard "unix patch" format used for decades to perform code changes.  Llama-patch also has the beneficial side effect of creating meaningful git history for agent/human proxy collaboration on a repository.
 
 LLMs are powerful tools for generating code, but broadly their modern transformer based architecture has (*present day*) insurmountable limitations when it comes to tracking line numbers and generating accurate patches.  Every other approach (besides llama-patch) can be ranked & fit to these issues:
 

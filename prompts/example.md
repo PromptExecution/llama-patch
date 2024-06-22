@@ -1,24 +1,25 @@
 # llama-patch Usage
 
-Instructions for LLM
+Markdown Formatted Prompt Instructions for LLM
 
 llama-patch is transformer friendly syntax built for iterative code modifications.
 
-This is a neo-modern version of the Unix GNU Unified Diff format that is suitable for fixing/revising
-streaming generated code where line numbers are completely relative and irrelevant (so unix diff won't work!)
+llama-patch offers a neo-modern interpretation of the popular Unix GNU Unified Diff format that is suitable for fixing/revising
+generated code from a stream where line numbers are completely relative and irrelevant (so unix diff won't work!)
 Llama-Patch is similar to diff, using the same --- selector and +/- syntax:
 
+```
 --- path/to/file
 - old line
 + new line
+```
 
-
-⚠️ llama-patch NEVER has a +++ modified file because we're modifying the file from a generated stream (not a source)
-⚠️ llama-patch NEVER uses the diff @@ line number @@ selector
-👍🏻 llama-patch ALWAYS uses a ?? AST (abstract syntax tree) selector that performs a seek to a relative position
+⚠️ llama-patch NEVER has a +++ modified file because we're modifying the file from a generated stream (not a source)!
+⚠️ llama-patch NEVER uses the diff @@ line number @@ selector!
+👍🏻 llama-patch ALWAYS uses a ?? AST (abstract syntax tree) selector that performs a seek to a relative position!
 
 Okay, ready?
-Here is a complete example in markdown that is properly escaped with llmPATCH formatting backtick ``` notation:
+Here is a complete example in markdown that is properly escaped with llmPATCH inside markdown backtick ``` notation:
 
 ```llmPATCH
 --- path/to/filename
@@ -30,23 +31,33 @@ def target_function(x):
 +    return x * 2
 ```
 
+⚠️ when outputting raw (non-markdown) patches then omit the ```
+
 # llama-patch Quickstart:
---- filename or path/to/file : denotes the beginning of a new chunk in a file
+```
+--- path/to/file : denotes the beginning of a new chunk in a file
 ?? : language specific AST selector (described below, must end with ??)
   : nothing (an unchanged line)
 + : is a line added
 - : is a line removed
+```
 
-When changing multiple lines it is best pratice to group many - lines and + lines together
+When changing multiple lines it is best pratice to ALWAYS logically group many - lines and + lines together for readability and streamlined review.
+
 Also there are a few special selectors
-?? << : prepend at beginning of file stream
+```
+?? << : prepend at beginning of file stream (does NOT rewrite a file, only appends at the top)
 ?? >> : append to end of file stream
+```
 
 # Llama-patch AST Selectors
 
-Rust: Use fn for functions, class for classes, struct for structs ...
-Python: Use def for definitions, class for classes,  ...
-Javascript: Use function for functions or methods, class for classes, struct for structs, interface for interfaces, variable for variables or constant, type for type aliases ...
+
+|Language |Notes|
+|---------|-----|
+| Rust | Use fn for functions, class for classes, struct for structs ... |
+| Python | Use def for definitions, class for classes,  ... |
+| Javascript | Use function for functions or methods, class for classes, struct for structs, interface for interfaces, variable for variables or constant, type for type aliases ... |
 
 When outputting llama-patch chunks, as markdown text it is best practice to escape code in formatting backticks:
 ```llmPATCH
@@ -54,8 +65,20 @@ When outputting llama-patch chunks, as markdown text it is best practice to esca
 ?? function target_function
 ```
 
+## Style Tips
+👍🏻 minimize the number of lines changed.  it is ALWAYS better to replace one function at a time in multiple chunks.
+⚠️ never rewrite entire streams/files in large blocks because it is difficult to compare/review.
+⚠️ large chunks which attempt to overwrite existing functions will be rejected.
+
+
+## Special Notes
+
 When the target language supports overloading (multiple functions with the same name, but having different parameter definitions) such as
 C+++, Java, C#, Swift, Kotlin, Go, Python, Rust then it is necessary to use the complete overloaded function definition to avoid ambiguity
+
+
+##
+
 
 # Examples
 
@@ -125,32 +148,17 @@ function targetFunction(x: number): number {
 ## Example 4: Replacing a Rust Struct
 ### Input Request:
 
-Please replace the struct `MyStruct` in the file `src/main.rs` with the following implementation:
+Please rename a to x and b to y the Rust struct `MyStruct` in the file `src/main.rs` with the following implementation:
 
 ```rust
 struct MyStruct {
-    x: i32,
-    y: i32,
+    a: i32,
+    b: i32,
 }
 ```
 
 ### **LLM Output:**
 
-```json
-{
-    "FILE": "src/main.rs",
-    "TYPE": "struct",
-    "NAME": "MyStruct",
-    "CODE": "struct MyStruct {\n    x: i32,\n    y: i32,\n}"
-}
-```
-
-## Example 5: Removing a Rust Function
-### Input Request:
-
-Please remove the function `old_function` from the file `src/main.rs`.
-
-### *** LLM Output ***:
 ```llmPATCH
 --- src/main.rs
 ?? struct MyStruct
@@ -161,6 +169,36 @@ struct MyStruct {
 +    y: i32,
 }
 ```
+
+## Example 5. Target an overloaded C++ function
+```C++
+int targetFunction(int x) {
+    // New implementation
+    return x * 2;
+}
+
+double targetFunction(double x) {
+    // New implementation
+    return x * 2.0;
+}
+```
+
+*** LLM Output ***
+
+```llmPATCH
+--- src/main.cpp
+?? function targetFunction(int x)
++ int targetFunction(int x) {
++     // New implementation
++     return x * 2;
++ }
+?? function targetFunction(double x)
++ double targetFunction(double x) {
++     // New implementation
++     return x * 2.0;
++ }
+```
+
 
 👍🏻 LLAMA-PATCH TUTORIAL COMPLETE.
 
