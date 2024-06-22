@@ -56,7 +56,7 @@ Also there are a few special selectors
 |Language |Notes|
 |---------|-----|
 | Rust | Use fn for functions, class for classes, struct for structs ... |
-| Python | Use def for definitions, class for classes,  ... |
+| Python | Use def for definitions, class for classes, call for function calls, ... |
 | Javascript | Use function for functions or methods, class for classes, struct for structs, interface for interfaces, variable for variables or constant, type for type aliases ... |
 
 When outputting llama-patch chunks, as markdown text it is best practice to escape code in formatting backticks:
