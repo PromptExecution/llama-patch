@@ -7,20 +7,27 @@
 
 <img width=150 align=right src="llama-parse-logo.webp" alt="LLMs 💖 GNU Patch"/>
 
-The Llama Patching approach improves the creation, update, & delete of program code syntax inside text files via LLM codegen. Using a intermediate representation that can be translated into a valid [gnu unified diff](https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html) format suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)). This has the added benefit of git history annotation of prompts and parameters for llm maintained repositories.
+The Llama Patching approach improves the creation, update, & delete of program code syntax inside text files via LLM codegen. Using a intermediate representation with AST selector that can be translated into a valid [gnu unified diff](https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html) format suitable for [`git patch apply`](https://en.wikipedia.org/wiki/Patch_\(Unix\)).
+Llama patch can also merge+annotate the commit with prompts and parameters using the repository git history as a source of truth and potentially increasing comprehension of LLMs agents to avoid mistakes of tearing down [Chestertons Fence](https://thoughtbot.com/blog/chestertons-fence).
 
-### Support
+### Language Support
 | Language | Support  | Notes |
 |----------|----------| ----- |
 | Python   | YES      | uses redbaron to parse AST |
 | Rust     | YES     | uses syn crate to parse AST |
-| JavaScript | Next    | |
+| JavaScript | Next    | investigating babel |
 | TypeScript | Next    | in progress |
 | Bash     | Future      |
 | Go | Future |
 | Java | Future |
+| lua | | planned, luaparse |
+| C++ | | |
+| Terraform/HCL |||
 | 💖 Other    | TBD | please create issue + send PR to README file with link to issue |
 
+## Model Support
+| Model | YN | Notes |
+| ChatGPT 4o | Y | use [examples/example.md], don't say "rewrite" instead say "llama patch" or simply "patch" in prompts |
 
 ## Quickstart
 To get started simply add the [example instruction prompt](examples/) to your favorite codegen LLM, then pipe it's output into llama-patch using the cli or a subprocess to get out a patch file.
@@ -45,6 +52,7 @@ Llama-patch proffers a better tooling approach for your [agentic codegen](https:
 Agentic systems work best building software incrementally with specific task objectives rather than taking a ridiculously complex multi-objective prompt and outputting the entire finished project with zero errors in a single shot.
 
 Using systems like AutoGen, Crew.Ai it is straightforward to orchestrate teams (or crews) of agents who collaboratively implement projects through iterative development, however the maximum complexity these systems can currently attain is significantly constrained to small mostly academic exercises which demo well but don't translate into a legion of LLM agents being able to maintain (or refactor) a large sprawling legacy codebase.   While RAG's and FineTuning can improve the accuracy, each time the source code is changed incrementally those systems need to be updated, which is fine for RAG but impractical for FineTuning, however the RAG strategy for updating chunks of vectors can introduce other complications.   Generally it is best to have the LLM looking at the most recent copy of the relevant source code file(s) and ONLY outputting the changes to those files for review - unfortunately (for historical reasons) generating valid patch hunks is nearly impossible due to its dependency on counting (a task which transformers are notoriously ill equipped). llama-patch addresses these shorcomings by introducing instructions (prompt samples) + container executable tool as an intermediate step in the agentic pipeline that transmogrifies LLM outpuut into a valid gnu unified diff (patch) format which is suitable for `git apply` and creating a observable + auditable change history in the repo for agentic contributions.   It is assuumed this tool will (soon, future) be integrated into a more complete set of github actions to fire on a tagged issue and the era and job market for well paid human programmers will collapse shortly thereafter.
+
 
 ## Usage
 - Integrate llama-patch prompts instructing the model how to output "Llama Patch" (this will probably increase output efficiency and performance)
