@@ -1,0 +1,7 @@
+{
+    "file": "example.rs",
+    "type": "fn",
+    "name": "new_function",
+    "code": "fn new_function(b: i32) -> i32 {\n    b * b\n}"
+}
+

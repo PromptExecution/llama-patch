@@ -19,23 +19,25 @@ class LlamaPatchException(Exception):
 def apply_patch(llmpatch, out, cwd, verbose):
     if verbose:
         logger.setLevel(logging.DEBUG)
-
+    
     os.chdir(cwd)
-
+    
     patch_content = llmpatch.read()
     patches = parse_patches(patch_content)
 
     try:
+        diff_output = []
         for patch in patches:
             file_path, element_type, element_name, changes = patch
             logger.debug(f"Processing patch for {element_type} {element_name} in {file_path}")
-            apply_patch_to_file(file_path, element_type, element_name, changes)
-
+            diff_output.append(generate_diff_for_patch(file_path, element_type, element_name, changes))
+        
         if out.name != '<stdout>':
-            generate_patch_file(out.name)
+            with open(out.name, 'w') as file:
+                file.write('\n'.join(diff_output))
         else:
-            sys.stdout.write(generate_patch_diff())
-
+            sys.stdout.write('\n'.join(diff_output))
+    
     except LlamaPatchException as e:
         logger.error(f"Error applying patch: {e}")
         sys.exit(1)
@@ -46,49 +48,45 @@ def apply_patch(llmpatch, out, cwd, verbose):
 def parse_patches(patch_content):
     patch_pattern = re.compile(r'^--- (.+?)\n\?\? (\w+)\s*(\w+)?\n((?:[+\-].*?\n)+)', re.DOTALL | re.MULTILINE)
     matches = patch_pattern.findall(patch_content)
-
+    
     if not matches:
         raise LlamaPatchException("No valid patches found in the provided patch content.")
-
+    
     patches = []
     for match in matches:
         path, element_type, element_name, changes = match
         changes = changes.strip().split('\n')
         patches.append((path, element_type, element_name, changes))
-
+    
     return patches
 
-def apply_patch_to_file(file_path, element_type, element_name, changes):
+def generate_diff_for_patch(file_path, element_type, element_name, changes):
     if not os.path.isfile(file_path):
         raise LlamaPatchException(f"File not found: {file_path}")
 
     with open(file_path, 'r') as file:
         original_code = file.read()
 
-    try:
-        if element_type in ["function", "def"]:
-            updated_code = apply_function_patch(original_code, element_name, changes)
-        elif element_type == "class":
-            updated_code = apply_class_patch(original_code, element_name, changes)
-        elif element_type == "struct":
-            updated_code = apply_struct_patch(original_code, element_name, changes)
-        elif element_type == "<<":
-            updated_code = prepend_code(original_code, changes)
-        elif element_type == ">>":
-            updated_code = append_code(original_code, changes)
-        elif element_type == "call":
-            updated_code = apply_call_patch(original_code, element_name, changes)
-        else:
-            raise LlamaPatchException(f"Unsupported element type: {element_type}")
+    if element_type in ["function", "def"]:
+        updated_code = apply_function_patch(original_code, element_name, changes)
+    elif element_type == "class":
+        updated_code = apply_class_patch(original_code, element_name, changes)
+    elif element_type == "struct":
+        updated_code = apply_struct_patch(original_code, element_name, changes)
+    elif element_type == "<<":
+        updated_code = prepend_code(original_code, changes)
+    elif element_type == ">>":
+        updated_code = append_code(original_code, changes)
+    elif element_type == "call":
+        updated_code = apply_call_patch(original_code, element_name, changes)
+    else:
+        raise LlamaPatchException(f"Unsupported element type: {element_type}")
 
-        with open(file_path, 'w') as file:
-            file.write(updated_code)
-    except LlamaPatchException as e:
-        logger.error(f"Error applying patch for {element_type} {element_name} in {file_path}: {str(e)}")
-        logger.debug(f"Context code:\n{original_code}\nChanges:\n{changes}")
-        raise
+    original_lines = original_code.splitlines(keepends=True)
+    updated_lines = updated_code.splitlines(keepends=True)
 
-
+    diff = difflib.unified_diff(original_lines, updated_lines, fromfile=file_path, tofile=file_path)
+    return ''.join(diff)
 
 def apply_function_patch(original_code, function_name, changes):
     function_pattern = re.compile(rf'def {function_name}\(.*?\):\n((?:\s+.*?\n)*)', re.DOTALL)
@@ -159,7 +157,7 @@ def append_code(original_code, changes):
     return updated_code
 
 def generate_new_code(context_code, changes, call=False):
-    context_lines = context_code.strip().split('\n')
+    context_lines = context_code.split('\n')
     new_code = []
 
     try:
@@ -179,25 +177,6 @@ def generate_new_code(context_code, changes, call=False):
     else:
         return "\n".join(new_code)
 
-
-def generate_patch_file(output_file):
-    diff = generate_patch_diff()
-    with open(output_file, 'w') as file:
-        file.write(diff)
-
-def generate_patch_diff():
-    file_list = [f for f in os.listdir('.') if os.path.isfile(f)]
-    diff = []
-
-    for file_name in file_list:
-        with open(file_name, 'r') as file:
-            new_code = file.readlines()
-        with open(f'{file_name}.orig', 'r') as file:
-            old_code = file.readlines()
-        file_diff = difflib.unified_diff(old_code, new_code, fromfile=f'{file_name}.orig', tofile=file_name)
-        diff.extend(file_diff)
-
-    return ''.join(diff)
-
 if __name__ == "__main__":
     apply_patch()
+
